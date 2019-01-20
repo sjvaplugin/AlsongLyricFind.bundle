@@ -1,0 +1,8 @@
+[
+	{
+		"id": "lyric_path",
+		"label": "Lyric path",
+		"type": "text",
+		"default": ""
+	}
+]
