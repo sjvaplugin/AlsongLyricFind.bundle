@@ -4,6 +4,7 @@ import sys
 import xml.etree.ElementTree as ET
 import codecs
 from io import open
+import traceback
 
 def Start():
   HTTP.CacheTime = 0
@@ -41,15 +42,24 @@ def file2md5(filename):
   chunk = f.read(163840)
   md5.update(chunk)
   f.close()
-  return md5.hexdigest()
+  tmp = md5.hexdigest()
+  Log('filename:%s md5:%s', filename, tmp)
+  return tmp
 
 
 def alsong(musicmd5):
   url = 'http://lyrics.alsong.co.kr/alsongwebservice/service1.asmx'
-  postData = "<?xml version='1.0' encoding='UTF-8'?><SOAP-ENV:Envelope  xmlns:SOAP-ENV='http://www.w3.org/2003/05/soap-envelope' xmlns:SOAP-ENC='http://www.w3.org/2003/05/soap-encoding' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:ns2='ALSongWebServer/Service1Soap' xmlns:ns1='ALSongWebServer' xmlns:ns3='ALSongWebServer/Service1Soap12'><SOAP-ENV:Body><ns1:GetLyric5><ns1:stQuery><ns1:strChecksum>" + musicmd5 + "</ns1:strChecksum><ns1:strVersion>3.36</ns1:strVersion><ns1:strMACAddress>00ff667f9a08</ns1:strMACAddress><ns1:strIPAddress>xxx.xxx.xxx.xxx</ns1:strIPAddress></ns1:stQuery></ns1:GetLyric5></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+  #postData = "<?xml version='1.0' encoding='UTF-8'?><SOAP-ENV:Envelope  xmlns:SOAP-ENV='http://www.w3.org/2003/05/soap-envelope' xmlns:SOAP-ENC='http://www.w3.org/2003/05/soap-encoding' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:ns2='ALSongWebServer/Service1Soap' xmlns:ns1='ALSongWebServer' xmlns:ns3='ALSongWebServer/Service1Soap12'><SOAP-ENV:Body><ns1:GetLyric5><ns1:stQuery><ns1:strChecksum>" + musicmd5 + "</ns1:strChecksum><ns1:strVersion>3.36</ns1:strVersion><ns1:strMACAddress>00ff667f9a08</ns1:strMACAddress><ns1:strIPAddress>xxx.xxx.xxx.xxx</ns1:strIPAddress></ns1:stQuery></ns1:GetLyric5></SOAP-ENV:Body></SOAP-ENV:Envelope>"
+  postData = '<?xml version="1.0" encoding="UTF-8"?>\n<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns2="ALSongWebServer/Service1Soap" xmlns:ns1="ALSongWebServer" xmlns:ns3="ALSongWebServer/Service1Soap12"><SOAP-ENV:Body><ns1:GetLyric7><ns1:encData>0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</ns1:encData><ns1:stQuery><ns1:strChecksum>%s</ns1:strChecksum><ns1:strVersion></ns1:strVersion><ns1:strMACAddress></ns1:strMACAddress><ns1:strIPAddress></ns1:strIPAddress></ns1:stQuery></ns1:GetLyric7></SOAP-ENV:Body></SOAP-ENV:Envelope>' % musicmd5
 
-  headers = {'content-type': 'application/soap+xml; charset=UTF-8', 'User-Agent': 'gSOAP/2.7'} 
-  page = HTTP.Request(url, data=postData, headers=headers)
+  #headers = {'content-type': 'application/soap+xml; charset=utf-8', 'User-Agent': 'gSOAP/2.7', 'Host':'lyrics.alsong.co.kr', 'SOAPAction':'ALSongWebServer/GetLyric7', 'Content-Length':len(postData) }
+  headers = {'content-type': 'application/soap+xml; charset=utf-8'}
+  try:
+    page = HTTP.Request(url, data=postData, headers=headers)
+  except Exception as e:
+    Log('Exception:%s', e)
+    Log(traceback.format_exc())
+  Log(page.content)
   root = ET.fromstring(page.content)
   for child in root.iter():
     if child.tag.find('strLyric') != -1 :
